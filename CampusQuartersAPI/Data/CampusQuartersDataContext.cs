@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using CampusQuartersAPI.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace CampusQuartersAPI.Data
 {
@@ -8,5 +9,9 @@ namespace CampusQuartersAPI.Data
         {
             
         }
+
+        public DbSet<Role> Roles { get; set; }
+        public DbSet<Account> Account { get; set; }
+
     }
 }
