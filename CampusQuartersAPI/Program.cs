@@ -13,7 +13,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<CampusQuartersDataContext>(
     options =>
     {
-        options.UseSqlServer(builder.Configuration.GetConnectionString("CQConnetion"));
+        options.UseSqlServer(builder.Configuration.GetConnectionString("CQConnection"));
     });
 
 var app = builder.Build();
