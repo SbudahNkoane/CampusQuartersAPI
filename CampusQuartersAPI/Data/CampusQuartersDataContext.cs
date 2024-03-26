@@ -16,6 +16,8 @@ namespace CampusQuartersAPI.Data
         public DbSet<Landlord> Landlords { get; set; }
         public DbSet<Administrator> Administrators { get; set; }
         public DbSet<Photographer> Photographers { get; set; }
+        public DbSet<Availability> Availability { get; set; }
+        public DbSet<AvailabilityStatus> AvailabilityStatuses { get; set; } 
 
 
     }
