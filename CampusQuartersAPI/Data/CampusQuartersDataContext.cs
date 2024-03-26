@@ -19,7 +19,8 @@ namespace CampusQuartersAPI.Data
         public DbSet<Availability> Availability { get; set; }
         public DbSet<AvailabilityStatus> AvailabilityStatuses { get; set; }
         public DbSet<AccommodationType> AccommodationTypes { get; set; }
-
+        public DbSet<AccommodationImage> AccommodationImages { get; set; }
+        public DbSet<AccommodationVideo> AccommodationVideos { get; set; }  
 
     }
 }
