@@ -36,8 +36,9 @@ namespace CampusQuartersAPI.Controllers
             return Ok(student);
         }
 
-        [HttpPost]
 
+        //Register a Student
+        [HttpPost]
         public IActionResult PostStudent([FromBody] Student student)
         {
             //make sure the student account registers as normal user account
@@ -49,6 +50,7 @@ namespace CampusQuartersAPI.Controllers
             return Ok(student);
         }
 
+        //Delete a Student
         [HttpDelete]
         [Route("{id}")]
         public IActionResult DeleteStudent(int id)

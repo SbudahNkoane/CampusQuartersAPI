@@ -3,6 +3,7 @@ using CampusQuartersAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CampusQuartersAPI.Migrations
 {
     [DbContext(typeof(CampusQuartersDataContext))]
-    partial class CampusQuartersDataContextModelSnapshot : ModelSnapshot
+    [Migration("20240326165243_AdministratorsMigration")]
+    partial class AdministratorsMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -107,39 +110,6 @@ namespace CampusQuartersAPI.Migrations
                     b.ToTable("Landlords");
                 });
 
-            modelBuilder.Entity("CampusQuartersAPI.Models.Photographer", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AccountId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("CellNumber")
-                        .HasColumnType("int");
-
-                    b.Property<string>("EmailAddress")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Surname")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AccountId");
-
-                    b.ToTable("Photographers");
-                });
-
             modelBuilder.Entity("CampusQuartersAPI.Models.Role", b =>
                 {
                     b.Property<int>("Id")
@@ -205,17 +175,6 @@ namespace CampusQuartersAPI.Migrations
                 });
 
             modelBuilder.Entity("CampusQuartersAPI.Models.Landlord", b =>
-                {
-                    b.HasOne("CampusQuartersAPI.Models.Account", "Account")
-                        .WithMany()
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Account");
-                });
-
-            modelBuilder.Entity("CampusQuartersAPI.Models.Photographer", b =>
                 {
                     b.HasOne("CampusQuartersAPI.Models.Account", "Account")
                         .WithMany()
