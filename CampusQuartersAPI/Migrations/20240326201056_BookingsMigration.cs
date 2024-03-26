@@ -17,12 +17,12 @@ namespace CampusQuartersAPI.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    StudentId = table.Column<int>(type: "int", nullable: false),
                     AccommodationId = table.Column<int>(type: "int", nullable: false),
                     BookedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsTaken = table.Column<bool>(type: "bit", nullable: false),
                     IsViewed = table.Column<bool>(type: "bit", nullable: false),
-                    ViewDate = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    ViewDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    StudentId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -37,8 +37,7 @@ namespace CampusQuartersAPI.Migrations
                         name: "FK_Bookings_Students_StudentId",
                         column: x => x.StudentId,
                         principalTable: "Students",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(

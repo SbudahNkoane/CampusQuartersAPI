@@ -94,7 +94,7 @@ namespace CampusQuartersAPI.Migrations
                     b.Property<bool>("IsViewed")
                         .HasColumnType("bit");
 
-                    b.Property<int>("StudentId")
+                    b.Property<int?>("StudentId")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("ViewDate")
@@ -414,7 +414,7 @@ namespace CampusQuartersAPI.Migrations
                         .IsRequired();
 
                     b.HasOne("CampusQuartersAPI.Models.Landlord", "Landlord")
-                        .WithMany()
+                        .WithMany("Accommodations")
                         .HasForeignKey("LandlordId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -440,15 +440,11 @@ namespace CampusQuartersAPI.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("CampusQuartersAPI.Models.Student", "Student")
-                        .WithMany()
-                        .HasForeignKey("StudentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.HasOne("CampusQuartersAPI.Models.Student", null)
+                        .WithMany("Bookings")
+                        .HasForeignKey("StudentId");
 
                     b.Navigation("Accommodation");
-
-                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("CampusQuartersAPI.Models.AccommodationImage", b =>
@@ -541,6 +537,16 @@ namespace CampusQuartersAPI.Migrations
                     b.Navigation("Images");
 
                     b.Navigation("Videos");
+                });
+
+            modelBuilder.Entity("CampusQuartersAPI.Models.Landlord", b =>
+                {
+                    b.Navigation("Accommodations");
+                });
+
+            modelBuilder.Entity("CampusQuartersAPI.Models.Student", b =>
+                {
+                    b.Navigation("Bookings");
                 });
 #pragma warning restore 612, 618
         }
