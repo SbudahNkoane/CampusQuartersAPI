@@ -13,5 +13,6 @@ namespace CampusQuartersAPI.Data
         public DbSet<Role> Roles { get; set; }
         public DbSet<Account> Account { get; set; }
         public DbSet<Student> Students { get; set; }
+        public DbSet<Landlord> Landlords { get; set; }
     }
 }

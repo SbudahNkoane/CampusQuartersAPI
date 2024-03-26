@@ -28,7 +28,7 @@ namespace CampusQuartersAPI.Controllers
         [Route("{id}")]
         public IActionResult GetStudent(int id)
         {
-            var student = _context.Students.Include(a=>a.Account).FirstOrDefault(x => x.Id == id);
+            var student = _context.Students.Include(a => a.Account).FirstOrDefault(x => x.Id == id);
             if (student == null)
             {
                 return NotFound("This student does not exist");
@@ -38,36 +38,39 @@ namespace CampusQuartersAPI.Controllers
 
         [HttpPost]
 
-        public IActionResult PostStudent([FromBody]Student student)
+        public IActionResult PostStudent([FromBody] Student student)
         {
-             student.Account.RoleId = 1;
+            //make sure the student account registers as normal user account
+            student.Account.RoleId = 1;
+
             _context.Students.Add(student);
-            
+
             _context.SaveChanges();
             return Ok(student);
         }
 
         [HttpDelete]
         [Route("{id}")]
-        public IActionResult DeleteStudent(int id) 
+        public IActionResult DeleteStudent(int id)
         {
             var student = _context.Students.Include(a => a.Account).FirstOrDefault(_x => _x.Id == id);
-            if(student == null)
+            if (student == null)
             {
                 return BadRequest("Student does not exist");
             }
-            _context.Students.Remove(student);
-            var account =_context.Account.FirstOrDefault(a=>a.Id==student.Account.Id);
+
+            var account = _context.Account.FirstOrDefault(a => a.Id == student.Account.Id);
             if (account == null)
             {
-                return BadRequest();
+                return BadRequest("Account Not found");
             }
 
+            _context.Students.Remove(student);
             _context.Account.Remove(account);
 
             _context.SaveChanges();
 
-            return Ok();
+            return Ok("Student successfully deleted");
         }
     }
 }
