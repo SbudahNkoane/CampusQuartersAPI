@@ -21,7 +21,8 @@ namespace CampusQuartersAPI.Data
         public DbSet<AccommodationType> AccommodationTypes { get; set; }
         public DbSet<AccommodationImage> AccommodationImages { get; set; }
         public DbSet<AccommodationVideo> AccommodationVideos { get; set; }
-        public DbSet<Accommodation> Accommodations { get; set; } 
+        public DbSet<Accommodation> Accommodations { get; set; }
+        public DbSet<AccommodationBooking> Bookings { get; set; }   
 
     }
 }
