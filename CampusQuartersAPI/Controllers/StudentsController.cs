@@ -1,6 +1,7 @@
 ﻿using CampusQuartersAPI.Data;
 using CampusQuartersAPI.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CampusQuartersAPI.Controllers
 {
@@ -18,7 +19,7 @@ namespace CampusQuartersAPI.Controllers
         [HttpGet]
         public IActionResult GetStudents()
         {
-            var students = _context.Students.ToList();
+            var students = _context.Students.Include(a => a.Account).ToList();
 
             return Ok(students);
         }
@@ -27,7 +28,7 @@ namespace CampusQuartersAPI.Controllers
         [Route("{id}")]
         public IActionResult GetStudent(int id)
         {
-            var student = _context.Students.FirstOrDefault(x => x.Id == id);
+            var student = _context.Students.Include(a=>a.Account).FirstOrDefault(x => x.Id == id);
             if (student == null)
             {
                 return NotFound("This student does not exist");
@@ -50,12 +51,20 @@ namespace CampusQuartersAPI.Controllers
         [Route("{id}")]
         public IActionResult DeleteStudent(int id) 
         {
-            var student = _context.Students.FirstOrDefault(_x => _x.Id == id);
+            var student = _context.Students.Include(a => a.Account).FirstOrDefault(_x => _x.Id == id);
             if(student == null)
             {
                 return BadRequest("Student does not exist");
             }
-            _context.Students.Remove(student); 
+            _context.Students.Remove(student);
+            var account =_context.Account.FirstOrDefault(a=>a.Id==student.Account.Id);
+            if (account == null)
+            {
+                return BadRequest();
+            }
+
+            _context.Account.Remove(account);
+
             _context.SaveChanges();
 
             return Ok();
