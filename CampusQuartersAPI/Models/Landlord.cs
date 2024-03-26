@@ -2,6 +2,6 @@
 {
     public class Landlord:User
     {
-        public List<Accommodation>  Accommodations { get; set; }
+        public List<Accommodation>?  Accommodations { get; set; }
     }
 }
