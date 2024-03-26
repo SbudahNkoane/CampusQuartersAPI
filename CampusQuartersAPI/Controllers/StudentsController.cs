@@ -19,7 +19,7 @@ namespace CampusQuartersAPI.Controllers
         [HttpGet]
         public IActionResult GetStudents()
         {
-            var students = _context.Students.Include(a => a.Account).ToList();
+            var students = _context.Students.Include(b => b.Bookings).Include(a => a.Account).ToList();
 
             return Ok(students);
         }
@@ -28,7 +28,7 @@ namespace CampusQuartersAPI.Controllers
         [Route("{id}")]
         public IActionResult GetStudent(int id)
         {
-            var student = _context.Students.Include(a => a.Account).FirstOrDefault(x => x.Id == id);
+            var student = _context.Students.Include(b => b.Bookings).Include(a => a.Account).FirstOrDefault(x => x.Id == id);
             if (student == null)
             {
                 return NotFound("This student does not exist");
@@ -55,12 +55,12 @@ namespace CampusQuartersAPI.Controllers
         [Route("{id}")]
         public IActionResult DeleteStudent(int id)
         {
-            var student = _context.Students.Include(a => a.Account).FirstOrDefault(_x => _x.Id == id);
+            var student = _context.Students.Include(b=>b.Bookings).Include(a => a.Account).FirstOrDefault(_x => _x.Id == id);
             if (student == null)
             {
                 return BadRequest("Student does not exist");
             }
-
+          //  var bookings = _context.Bookings.Where(booking=>booking.);
             var account = _context.Account.FirstOrDefault(a => a.Id == student.Account.Id);
             if (account == null)
             {
