@@ -1,4 +1,6 @@
 ﻿using CampusQuartersAPI.Data;
+using CampusQuartersAPI.Dtos.Accommodation;
+using CampusQuartersAPI.Mappers;
 using CampusQuartersAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -20,12 +22,15 @@ namespace CampusQuartersAPI.Controllers
         {
             var accommodation = _dataContext.Accommodations
                 .Include(accommodation => accommodation.Type)
+                .Include(accommodation => accommodation.Availability)
                 .Include(accommodation => accommodation.Availability.Status)
-                //.Include(accommodation => accommodation.Landlord)
+                .Include(createAccommodation => createAccommodation.Landlord)
                 .Include(accommodation => accommodation.Videos)
                 .Include(accommodation => accommodation.Images)
-                .Include(accommodation => accommodation.Availability).ToList();
-            return Ok(accommodation);
+               .ToList();
+
+            var accommodationDto = accommodation.Select(a => a.ToAccommodationDto());
+            return Ok(accommodationDto);
         }
         [HttpGet]
         [Route("{id}")]
@@ -34,20 +39,21 @@ namespace CampusQuartersAPI.Controllers
             var accommodation = _dataContext.Accommodations.FirstOrDefault(x => x.Id == id);
             if (accommodation == null)
             {
-                return NotFound("Accommodation does mot exist");
+                return NotFound("Accommodation does not exist");
             }
-            return Ok(accommodation);
+            return Ok(accommodation.ToAccommodationDto());
         }
         [HttpPost]
-        public IActionResult PostAccommodation([FromBody] Accommodation accommodation)
+        public IActionResult PostAccommodation([FromBody] CreateAccommodationDto createAccommodation)
         {
-            if (accommodation == null)
+            if (createAccommodation == null)
             {
                 return BadRequest();
             }
+            Accommodation accommodation = createAccommodation.ToAccommodationFromCreateDto();
             _dataContext.Accommodations.Add(accommodation);
             _dataContext.SaveChanges();
-            return Ok(accommodation);
+            return Ok(accommodation.ToAccommodationDto());
         }
 
         [HttpDelete]
@@ -57,9 +63,37 @@ namespace CampusQuartersAPI.Controllers
             var accommodation = _dataContext.Accommodations.Include(accommodation => accommodation.Type).Include(accommodation => accommodation.Images).Include(accommodation => accommodation.Availability).FirstOrDefault(x => x.Id == id);
             if (accommodation == null)
             {
-                return NotFound("Accommodation does mot exist");
+                return NotFound("Accommodation does not exist");
             }
-            return Ok();
+            try
+            {
+                _dataContext.Accommodations.Remove(accommodation);
+
+                if (accommodation.Availability != null)
+                    _dataContext.Availability.Remove(accommodation.Availability);
+
+                if (accommodation.Images != null)
+                {
+                    foreach (var image in accommodation.Images)
+                    {
+                        _dataContext.AccommodationImages.Remove(image);
+                    }
+                }
+                if (accommodation.Videos != null)
+                {
+                    foreach (var video in accommodation.Videos)
+                    {
+                        _dataContext.AccommodationVideos.Remove(video);
+                    }
+                }
+                _dataContext.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            return Ok("Accommodation successfully deleted");
         }
     }
 }

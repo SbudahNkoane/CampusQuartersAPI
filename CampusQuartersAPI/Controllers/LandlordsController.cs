@@ -1,4 +1,6 @@
 ﻿using CampusQuartersAPI.Data;
+using CampusQuartersAPI.Dtos.Landlord;
+using CampusQuartersAPI.Mappers;
 using CampusQuartersAPI.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -20,8 +22,9 @@ namespace CampusQuartersAPI.Controllers
         public IActionResult GetLandlords() 
         {
            var landlords= _dataContext.Landlords.Include(a => a.Account).ToList();
+            var landlordsDto = landlords.Select(l => l.ToLandlordDto());
            
-            return Ok(landlords);
+            return Ok(landlordsDto);
         }
         [HttpGet]
         [Route("{id}")]
@@ -32,23 +35,37 @@ namespace CampusQuartersAPI.Controllers
             {
                 return NotFound("Landlord does not exist");
             }
-            return Ok(landlord);
+            return Ok(landlord.ToLandlordDto());
+        }
+        [HttpPut]
+        [Route("{id}")]
+        public IActionResult UpdateLandlord([FromRoute]int id, [FromBody] UpdateLandlordDto updateLandlord)
+        {
+          var landlordFound = _dataContext.Landlords.FirstOrDefault(l => l.Id==id);
+            if (landlordFound == null)
+            {
+                return BadRequest("Landlord does not exist!!");
+            }
+            landlordFound.Name = updateLandlord.Name;
+            landlordFound.Surname= updateLandlord.Surname;
+            landlordFound.CellNumber = updateLandlord.CellNumber;
+            _dataContext.SaveChanges();
+            return Ok(landlordFound.ToLandlordDto());
         }
 
         [HttpPost]
-        public IActionResult PostLandlord([FromBody]Landlord landlord)
+        public IActionResult PostLandlord([FromBody]CreateLandlordDto landlordDto)
         {
-            if (landlord == null)
+            if (landlordDto == null)
             {
                 return BadRequest();
             }
-            //make sure the landlord account registers as normal user account
-            landlord.Account.RoleId = 1;
+            Landlord landlord = landlordDto.ToLandlordFromCreateDto();
 
             _dataContext.Landlords.Add(landlord);
             _dataContext.SaveChanges();
 
-            return Ok(landlord);
+            return Ok(landlord.ToLandlordDto());
         }
 
         [HttpDelete]
@@ -58,15 +75,10 @@ namespace CampusQuartersAPI.Controllers
             var landlord = _dataContext.Landlords.Include(a=>a.Account).FirstOrDefault(l => l.Id == id);
             if (landlord == null)
             {
-                return NotFound("Landlord does not exist");
-            }
-            var account = _dataContext.Account.FirstOrDefault(a=>a.Id == landlord.Account.Id);
-            if (account == null)
-            {
-                return NotFound("Account does not exist");
+                return BadRequest("Landlord does not exist");
             }
             _dataContext.Landlords.Remove(landlord);
-            _dataContext.Account.Remove(account);
+            _dataContext.Account.Remove(landlord.Account);
             _dataContext.SaveChanges();
 
             return Ok("Landlord successfully deleted");

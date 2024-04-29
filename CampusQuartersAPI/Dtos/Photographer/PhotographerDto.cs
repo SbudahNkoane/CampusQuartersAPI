@@ -1,8 +1,6 @@
-﻿using CampusQuartersAPI.Models;
-
-namespace CampusQuartersAPI
+﻿namespace CampusQuartersAPI.Dtos.Photographer
 {
-    public abstract class User
+    public class PhotographerDto
     {
         public int Id { get; set; }
         public string Name { get; set; }
@@ -10,7 +8,5 @@ namespace CampusQuartersAPI
         public string EmailAddress { get; set; }
         public int CellNumber { get; set; }
         public int AccountId { get; set; }
-        public Account Account { get; set; }
-
     }
 }
