@@ -1,10 +1,8 @@
-﻿using CampusQuartersAPI.Data;
-using CampusQuartersAPI.Dtos.Landlord;
+﻿using CampusQuartersAPI.Dtos.Landlord;
 using CampusQuartersAPI.Mappers;
 using CampusQuartersAPI.Models;
-using Microsoft.AspNetCore.Http;
+using DomainLayer.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace CampusQuartersAPI.Controllers
 {
@@ -12,25 +10,25 @@ namespace CampusQuartersAPI.Controllers
     [ApiController]
     public class LandlordsController : ControllerBase
     {
-        private readonly CampusQuartersDataContext _dataContext;
+        private readonly ILandlordRepository _landlordRepository;
 
-        public LandlordsController(CampusQuartersDataContext dataContext)
+        public LandlordsController(ILandlordRepository landlordRepository)
         {
-            _dataContext = dataContext;
+            _landlordRepository = landlordRepository;
         }
         [HttpGet]
-        public IActionResult GetLandlords() 
+        public async Task<IActionResult> GetLandlords()
         {
-           var landlords= _dataContext.Landlords.Include(a => a.Account).ToList();
+            var landlords = await _landlordRepository.GetAllLandlordsAsync();
             var landlordsDto = landlords.Select(l => l.ToLandlordDto());
-           
+
             return Ok(landlordsDto);
         }
         [HttpGet]
-        [Route("{id}")]
-        public IActionResult GetLandlordById(int id) 
+        [Route("{id:int}")]
+        public async Task<IActionResult> GetLandlordById(int id)
         {
-            var landlord = _dataContext.Landlords.Include(a => a.Account).FirstOrDefault(l=>l.Id==id);
+            var landlord = await _landlordRepository.GetLandlordByIdAsync(id);
             if (landlord == null)
             {
                 return NotFound("Landlord does not exist");
@@ -38,48 +36,40 @@ namespace CampusQuartersAPI.Controllers
             return Ok(landlord.ToLandlordDto());
         }
         [HttpPut]
-        [Route("{id}")]
-        public IActionResult UpdateLandlord([FromRoute]int id, [FromBody] UpdateLandlordDto updateLandlord)
+        [Route("{id:int}")]
+        public async Task<IActionResult> UpdateLandlord([FromRoute] int id, [FromBody] UpdateLandlordDto updateLandlord)
         {
-          var landlordFound = _dataContext.Landlords.FirstOrDefault(l => l.Id==id);
-            if (landlordFound == null)
+            var landlord = await _landlordRepository.UpdateLandlordAsync(id, updateLandlord);
+            if (landlord == null)
             {
                 return BadRequest("Landlord does not exist!!");
             }
-            landlordFound.Name = updateLandlord.Name;
-            landlordFound.Surname= updateLandlord.Surname;
-            landlordFound.CellNumber = updateLandlord.CellNumber;
-            _dataContext.SaveChanges();
-            return Ok(landlordFound.ToLandlordDto());
+
+            return Ok(landlord.ToLandlordDto());
         }
 
         [HttpPost]
-        public IActionResult PostLandlord([FromBody]CreateLandlordDto landlordDto)
+        public async Task<IActionResult> PostLandlord([FromBody] CreateLandlordDto landlordDto)
         {
             if (landlordDto == null)
             {
                 return BadRequest();
             }
-            Landlord landlord = landlordDto.ToLandlordFromCreateDto();
-
-            _dataContext.Landlords.Add(landlord);
-            _dataContext.SaveChanges();
+            Landlord landlord = await _landlordRepository.CreateLandlordAsync(landlordDto.ToLandlordFromCreateDto());
 
             return Ok(landlord.ToLandlordDto());
         }
 
         [HttpDelete]
         [Route("{id}")]
-        public IActionResult DeleteLandlord(int id)
+        public async Task<IActionResult> DeleteLandlord(int id)
         {
-            var landlord = _dataContext.Landlords.Include(a=>a.Account).FirstOrDefault(l => l.Id == id);
+            var landlord = await _landlordRepository.DeleteLandlordAsync(id);
             if (landlord == null)
             {
                 return BadRequest("Landlord does not exist");
             }
-            _dataContext.Landlords.Remove(landlord);
-            _dataContext.Account.Remove(landlord.Account);
-            _dataContext.SaveChanges();
+
 
             return Ok("Landlord successfully deleted");
         }

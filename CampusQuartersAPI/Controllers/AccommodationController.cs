@@ -2,6 +2,7 @@
 using CampusQuartersAPI.Dtos.Accommodation;
 using CampusQuartersAPI.Mappers;
 using CampusQuartersAPI.Models;
+using DomainLayer.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,37 +12,35 @@ namespace CampusQuartersAPI.Controllers
     [ApiController]
     public class AccommodationController : ControllerBase
     {
-        private readonly CampusQuartersDataContext _dataContext;
+        private readonly IAccommodationRepository _accommodationRepository;
 
-        public AccommodationController(CampusQuartersDataContext dataContext)
+        public AccommodationController(CampusQuartersDataContext dataContext, IAccommodationRepository accommodationRepository)
         {
-            _dataContext = dataContext;
+            _accommodationRepository = accommodationRepository;
         }
         [HttpGet]
-        public IActionResult GetAccommodation()
+        public async Task<IActionResult> GetAccommodation()
         {
-            var accommodation = _dataContext.Accommodations
-                .Include(accommodation => accommodation.Type)
-                .Include(accommodation => accommodation.Availability)
-                .Include(accommodation => accommodation.Availability.Status)
-                .Include(createAccommodation => createAccommodation.Landlord)
-                .Include(accommodation => accommodation.Videos)
-                .Include(accommodation => accommodation.Images)
-               .ToList();
+            var accommodation = await _accommodationRepository.GetAllAccommodationsAsync();
+            if (accommodation == null)
+            {
+                return BadRequest();
+            }
 
             var accommodationDto = accommodation.Select(a => a.ToAccommodationDto());
             return Ok(accommodationDto);
         }
         [HttpGet]
         [Route("{id}")]
-        public IActionResult GetAccommodationById(int id)
+        public async Task<IActionResult> GetAccommodationById(int id)
         {
-            var accommodation = _dataContext.Accommodations.FirstOrDefault(x => x.Id == id);
+            var accommodation = await _accommodationRepository.GetAccommodationByIdAsync(id);
             if (accommodation == null)
             {
                 return NotFound("Accommodation does not exist");
             }
-            return Ok(accommodation.ToAccommodationDto());
+            var accommodationDto = accommodation.ToAccommodationDto();
+            return Ok(accommodationDto);
         }
         [HttpPost]
         public IActionResult PostAccommodation([FromBody] CreateAccommodationDto createAccommodation)
@@ -51,47 +50,36 @@ namespace CampusQuartersAPI.Controllers
                 return BadRequest();
             }
             Accommodation accommodation = createAccommodation.ToAccommodationFromCreateDto();
-            _dataContext.Accommodations.Add(accommodation);
-            _dataContext.SaveChanges();
-            return Ok(accommodation.ToAccommodationDto());
-        }
-
-        [HttpDelete]
-        [Route("{id}")]
-        public IActionResult DeleteAccommodation(int id)
-        {
-            var accommodation = _dataContext.Accommodations.Include(accommodation => accommodation.Type).Include(accommodation => accommodation.Images).Include(accommodation => accommodation.Availability).FirstOrDefault(x => x.Id == id);
-            if (accommodation == null)
-            {
-                return NotFound("Accommodation does not exist");
-            }
             try
             {
-                _dataContext.Accommodations.Remove(accommodation);
-
-                if (accommodation.Availability != null)
-                    _dataContext.Availability.Remove(accommodation.Availability);
-
-                if (accommodation.Images != null)
-                {
-                    foreach (var image in accommodation.Images)
-                    {
-                        _dataContext.AccommodationImages.Remove(image);
-                    }
-                }
-                if (accommodation.Videos != null)
-                {
-                    foreach (var video in accommodation.Videos)
-                    {
-                        _dataContext.AccommodationVideos.Remove(video);
-                    }
-                }
-                _dataContext.SaveChanges();
+                _accommodationRepository.CreateAccommodationAsync(accommodation);
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
+
+            return Ok(accommodation.ToAccommodationDto());
+        }
+
+        [HttpDelete]
+        [Route("{id}")]
+        public async Task<IActionResult> DeleteAccommodation(int id)
+        {
+            try
+            {
+             var accommodation =  await _accommodationRepository.DeleteAccommodationAsync(id);
+                if (accommodation == null)
+                {
+                    return NotFound("Accommodation does not exist");
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+           
+            
 
             return Ok("Accommodation successfully deleted");
         }

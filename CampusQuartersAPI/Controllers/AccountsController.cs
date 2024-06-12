@@ -1,7 +1,6 @@
 ﻿using CampusQuartersAPI.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 
 namespace CampusQuartersAPI.Controllers
 {

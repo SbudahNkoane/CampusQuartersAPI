@@ -1,4 +1,8 @@
+
+
 using CampusQuartersAPI.Data;
+using DataAccessLayer.Implementations;
+using DomainLayer.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,7 +19,11 @@ builder.Services.AddDbContext<CampusQuartersDataContext>(
     {
         options.UseSqlServer(builder.Configuration.GetConnectionString("CQConnection"));
     });
-
+builder.Services.AddScoped<IStudentRepository,StudentRepository>();
+builder.Services.AddScoped<ILandlordRepository, LandlordRepository>();
+builder.Services.AddScoped<IAdministratorRepository, AdministratorRepository>();
+builder.Services.AddScoped<IAccommodationRepository, AccommodationRepository>();
+builder.Services.AddScoped<IPhotographerRepository, PhotographerRepository>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

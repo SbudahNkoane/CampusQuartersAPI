@@ -1,6 +1,5 @@
 ﻿using CampusQuartersAPI.Data;
 using CampusQuartersAPI.Dtos.Booking;
-using CampusQuartersAPI.Mappers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,13 +16,13 @@ namespace CampusQuartersAPI.Controllers
             _dataContext = dataContext;
         }
 
-        [HttpGet]
-        public IActionResult GetBookings()
-        {
-            var bookings = _dataContext.Bookings.Include(b => b.Accommodation).ToList();
-            var bookingsDto = bookings.Select(b => b.ToBookingDto());
-            return Ok(bookingsDto);
-        }
+        //[HttpGet]
+        //public IActionResult GetBookings()
+        //{
+        //    var bookings = _dataContext.Bookings.Include(b => b.Accommodation).ToList();
+        //    var bookingsDto = bookings.Select(b => b.ToBookingDto());
+        //    return Ok(bookingsDto);
+        //}
         [HttpGet]
         [Route("{id}")]
         public IActionResult GetBookingById(int id)
@@ -34,7 +33,9 @@ namespace CampusQuartersAPI.Controllers
                 return NotFound();
             }
 
-            return Ok(booking.ToBookingDto());
+            return Ok(booking
+                //.ToBookingDto()
+                );
         }
 
         [HttpPut]
@@ -51,7 +52,9 @@ namespace CampusQuartersAPI.Controllers
             booking.ViewDate = updateBookingDto.ViewDate;
 
             _dataContext.SaveChanges();
-            return Ok(booking.ToBookingDto());
+            return Ok(booking
+                //.ToBookingDto()
+                );
         }
 
         [HttpPost]
@@ -71,7 +74,9 @@ namespace CampusQuartersAPI.Controllers
                 StudentId = studentId
             };
 
-            _dataContext.Bookings.Add(createBookingDto.ToBookingFromCreateDto());
+            //_dataContext.Bookings.Add(createBookingDto
+            //    //.ToBookingFromCreateDto()
+            //    );
             _dataContext.SaveChanges();
             return Ok(createBookingDto);
         }

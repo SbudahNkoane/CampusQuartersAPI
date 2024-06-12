@@ -1,6 +1,6 @@
-﻿using CampusQuartersAPI.Data;
-using CampusQuartersAPI.Dtos.Photographer;
+﻿using CampusQuartersAPI.Dtos.Photographer;
 using CampusQuartersAPI.Mappers;
+using DomainLayer.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,26 +10,25 @@ namespace CampusQuartersAPI.Controllers
     [ApiController]
     public class PhotographersController : ControllerBase
     {
-        private readonly CampusQuartersDataContext _dataContext;
+        private readonly IPhotographerRepository _photographerRepository;
 
-        public PhotographersController(CampusQuartersDataContext dataContext)
+        public PhotographersController(IPhotographerRepository photographerRepository)
         {
-            _dataContext = dataContext;
+            _photographerRepository = photographerRepository;
         }
 
         [HttpGet]
-        public IActionResult GetPhotographers()
+        public async Task<IActionResult> GetPhotographers()
         {
-            var photographers = _dataContext.Photographers
-               .ToList();
+            var photographers = await _photographerRepository.GetAllPhotographersAsync();
             var photographersDto = photographers.Select(p => p.ToPhotographerDto());
             return Ok(photographersDto);
         }
         [HttpGet]
-        [Route("{id}")]
-        public IActionResult GetPhotographerById(int id)
+        [Route("{id:int}")]
+        public async Task<IActionResult> GetPhotographerById(int id)
         {
-            var photographer = _dataContext.Photographers.FirstOrDefault(p => p.Id == id);
+            var photographer = await _photographerRepository.GetPhotographerByIdAsync(id);
             if (photographer == null)
             {
                 return NotFound("Photographer not found");
@@ -39,51 +38,43 @@ namespace CampusQuartersAPI.Controllers
 
         [HttpPut]
         [Route("{id:int}")]
-        public IActionResult UpdatePhotographer([FromBody] UpdatePhotographerDto updatePhotographer, [FromRoute] int id)
+        public async Task<IActionResult> UpdatePhotographer([FromBody] UpdatePhotographerDto updatePhotographer, [FromRoute] int id)
         {
-            var photographer = _dataContext.Photographers.FirstOrDefault(p => p.Id == id);
+            var photographer = await _photographerRepository.UpdatePhotographerAsync(id, updatePhotographer);
             if (photographer == null)
             {
                 return BadRequest("photographer does not exist!!");
             }
-            else
-            {
-                photographer.Name = updatePhotographer.Name;
-                photographer.Surname = updatePhotographer.Surname;
-                photographer.CellNumber = updatePhotographer.CellNumber;
-                _dataContext.SaveChanges();
 
-                return Ok(photographer.ToPhotographerDto());
-            }
+            return Ok(photographer.ToPhotographerDto());
+
         }
 
         [HttpPost]
-        public IActionResult PostPhotographer([FromBody] CreatePhotographerDto createPhotographer)
+        public async Task<IActionResult> PostPhotographer([FromBody] CreatePhotographerDto createPhotographer)
         {
             if (createPhotographer == null)
             {
                 return BadRequest();
             }
-            var photographer = createPhotographer.ToPhotographerFromCreateDto();
+            var photographer =await _photographerRepository.CreatePhotographerAsync( createPhotographer.ToPhotographerFromCreateDto());
+            if (photographer==null)
+            {
+                return BadRequest();
+            }   
 
-            _dataContext.Photographers.Add(photographer);
-            _dataContext.SaveChanges();
 
             return Ok(photographer.ToPhotographerDto());
         }
         [HttpDelete]
         [Route("{id}")]
-        public IActionResult DeletePhotographer(int id)
+        public async Task<IActionResult> DeletePhotographer(int id)
         {
-            var photographer = _dataContext.Photographers.Include(photographer => photographer.Account).FirstOrDefault(p => p.Id == id);
+            var photographer = await _photographerRepository.DeletePhotographerAsync(id);
             if (photographer == null)
             {
                 return BadRequest("Photographer does not exist");
             }
-            
-            _dataContext.Photographers.Remove(photographer);
-            _dataContext.Account.Remove(photographer.Account);
-            _dataContext.SaveChanges();
             return Ok("Photographer account successfully deleted");
         }
     }

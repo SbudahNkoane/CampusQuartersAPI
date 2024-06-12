@@ -1,8 +1,7 @@
 ﻿using CampusQuartersAPI.Data;
 using CampusQuartersAPI.Dtos.Administrator;
 using CampusQuartersAPI.Mappers;
-using CampusQuartersAPI.Models;
-using Microsoft.AspNetCore.Http;
+using DomainLayer.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,25 +11,29 @@ namespace CampusQuartersAPI.Controllers
     [ApiController]
     public class AdministratorsController : ControllerBase
     {
-        private readonly CampusQuartersDataContext _dataContext;
+        private readonly IAdministratorRepository _administratorRepository;
 
-        public AdministratorsController(CampusQuartersDataContext dataContext)
+        public AdministratorsController(CampusQuartersDataContext dataContext, IAdministratorRepository administratorRepository)
         {
-            _dataContext = dataContext;
+            _administratorRepository = administratorRepository;
         }
 
         [HttpGet]
-        public IActionResult GetAdmins() 
+        public async Task<IActionResult> GetAdmins()
         {
-            var admins =_dataContext.Administrators.ToList();
+            var admins = await _administratorRepository.GetAllAdministratorsAsync();
+            if (admins == null)
+            {
+                return BadRequest();
+            }
             var adminsDto = admins.Select(a => a.ToAdministratorDto());
             return Ok(adminsDto);
         }
         [HttpGet]
         [Route("{id}")]
-        public IActionResult GetAdmin(int id)
+        public async Task<IActionResult> GetAdminById(int id)
         {
-            var admin = _dataContext.Administrators.FirstOrDefault(ad => ad.Id == id);
+            var admin = await _administratorRepository.GetAdministratorByIdAsync(id);
             if (admin == null)
             {
                 return NotFound();
@@ -39,44 +42,34 @@ namespace CampusQuartersAPI.Controllers
         }
         [HttpPut]
         [Route("{id:int}")]
-        public IActionResult UpdateAdministrator([FromBody]UpdateAdministratorDto updateAdministrator, [FromRoute]int id)
+        public async Task<IActionResult> UpdateAdministrator([FromBody] UpdateAdministratorDto updateAdministrator, [FromRoute] int id)
         {
-            var adminFound = _dataContext.Administrators.FirstOrDefault(a => a.Id == id);
-            if(adminFound == null)
+            var admin = await _administratorRepository.UpdateAdministratorAsync(id, updateAdministrator);
+            if (admin == null)
             {
                 return NotFound();
             }
 
-            //Only 3 fields can be updated on user accounts:
-            adminFound.CellNumber = updateAdministrator.CellNumber;
-            adminFound.Name = updateAdministrator.Name;
-            adminFound.Surname = updateAdministrator.Surname;
-
-            _dataContext.SaveChanges();
-
-            return Ok(adminFound.ToAdministratorDto());
+            return Ok(admin.ToAdministratorDto());
         }
         [HttpPost]
-        public IActionResult PostAdmin([FromBody]CreateAdministratorDto createAdministrator)
+        public async Task<IActionResult> PostAdmin([FromBody] CreateAdministratorDto createAdministrator)
         {
-            var administrator = createAdministrator.ToAdministratorFromCreateDto();
-            _dataContext.Administrators.Add(administrator);
-            _dataContext.SaveChanges();
+            var administrator = await _administratorRepository
+                                                    .CreateAdministratorAsync(createAdministrator.ToAdministratorFromCreateDto());
+
 
             return Ok(administrator.ToAdministratorDto());
         }
         [HttpDelete]
         [Route("{id}")]
-        public IActionResult DeleteAdmin(int id)
+        public async Task<IActionResult> DeleteAdmin(int id)
         {
-            var admin = _dataContext.Administrators.Include(admin=>admin.Account).FirstOrDefault(ad=>ad.Id==id);
+            var admin = await _administratorRepository.DeleteAdministratorAsync(id);
             if (admin == null)
             {
                 return BadRequest("Administrator does not exist");
             }
-            _dataContext.Administrators.Remove(admin);
-            _dataContext.Account.Remove(admin.Account);
-            _dataContext.SaveChanges();
             return Ok("Administrator account successfully deleted");
         }
     }
